@@ -19,6 +19,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Safe key length for all MySQL / MariaDB versions on cPanel
+        \Illuminate\Support\Facades\Schema::defaultStringLength(191);
+
+        // Force HTTPS URLs in production or behind SSL proxies (cPanel / Cloudflare)
+        if (config('app.env') === 'production' || request()->server('HTTP_X_FORWARDED_PROTO') === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         if (config('database.default') === 'sqlite') {
             try {
                 \Illuminate\Support\Facades\DB::statement('PRAGMA journal_mode = WAL;');

@@ -44,5 +44,38 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        // Ensure all API routes return structured JSON responses, even in production with debug disabled
+        $this->renderable(function (Throwable $e, $request) {
+            if ($request->is('api/*') || $request->wantsJson()) {
+                $status = 500;
+                if ($this->isHttpException($e)) {
+                    $status = $e->getStatusCode();
+                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    $status = 401;
+                } elseif ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $status = 422;
+                } elseif ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                    $status = 404;
+                }
+
+                $response = [
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'An error occurred processing the request.',
+                ];
+
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    $response['errors'] = $e->errors();
+                }
+
+                if (config('app.debug')) {
+                    $response['exception'] = get_class($e);
+                    $response['file'] = $e->getFile();
+                    $response['line'] = $e->getLine();
+                }
+
+                return response()->json($response, $status);
+            }
+        });
     }
 }

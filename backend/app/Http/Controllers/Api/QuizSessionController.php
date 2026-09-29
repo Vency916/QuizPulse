@@ -46,12 +46,14 @@ class QuizSessionController extends Controller
             'auto_assign_groups' => 'nullable|boolean',
             'lobby_enabled' => 'nullable|boolean',
             'pace_mode' => 'nullable|in:self_paced,host_controlled',
+            'timer_enabled' => 'nullable|boolean',
         ]);
 
         $lobbyEnabled = $validated['lobby_enabled'] ?? ($request->input('pace_mode') === 'host_controlled');
         $paceMode = $lobbyEnabled ? 'host_controlled' : 'self_paced';
+        $timerEnabled = $validated['timer_enabled'] ?? ($quiz->settings['timer_enabled'] ?? true);
 
-        return DB::transaction(function () use ($quiz, $validated, $lobbyEnabled, $paceMode) {
+        return DB::transaction(function () use ($quiz, $validated, $lobbyEnabled, $paceMode, $timerEnabled) {
             $session = QuizSession::create([
                 'quiz_id' => $quiz->id,
                 'session_code' => QuizSession::generateUniqueCode(),
@@ -62,6 +64,7 @@ class QuizSessionController extends Controller
                 'settings' => [
                     'lobby_enabled' => $lobbyEnabled,
                     'pace_mode' => $paceMode,
+                    'timer_enabled' => $timerEnabled,
                     'groups_enabled' => $validated['groups_enabled'] ?? ($quiz->settings['groups_enabled'] ?? false),
                     'auto_assign_groups' => $validated['auto_assign_groups'] ?? false,
                     'speed_bonus' => $quiz->settings['speed_bonus'] ?? true,
@@ -609,6 +612,26 @@ class QuizSessionController extends Controller
 
         return response()->json([
             'message' => 'Lobby mode updated',
+            'session' => $this->formatSessionPayload($session->fresh(), true),
+        ]);
+    }
+
+    /**
+     * Admin: Toggle question timer on/off during live session.
+     */
+    public function toggleTimer(Request $request, $id)
+    {
+        $session = QuizSession::findOrFail($id);
+        $settings = $session->settings ?? [];
+        $currentTimer = (bool)($settings['timer_enabled'] ?? true);
+        $settings['timer_enabled'] = !$currentTimer;
+
+        $session->update(['settings' => $settings]);
+        self::clearSessionCache($session->session_code);
+
+        return response()->json([
+            'message' => $settings['timer_enabled'] ? 'Timer enabled' : 'Timer disabled (untimed mode)',
+            'timer_enabled' => $settings['timer_enabled'],
             'session' => $this->formatSessionPayload($session->fresh(), true),
         ]);
     }

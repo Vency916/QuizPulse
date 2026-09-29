@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, SkipForward, CheckCircle, BarChart2, Pause, Square, QrCode, Maximize2, Minimize2, Users, HelpCircle, ArrowLeft, Volume2, VolumeX, Zap, Lock } from 'lucide-react';
+import { Play, SkipForward, CheckCircle, BarChart2, Pause, Square, QrCode, Maximize2, Minimize2, Users, HelpCircle, ArrowLeft, Volume2, VolumeX, Zap, Lock, Clock } from 'lucide-react';
 import api from '../../services/api';
 import Timer from '../../components/Timer';
 import QRCodeModal from '../../components/QRCodeModal';
@@ -142,6 +142,17 @@ export default function LiveControlPanel() {
     else fetchSession();
   };
 
+  const handleToggleTimer = async () => {
+    sounds.playClick();
+    try {
+      const res = await api.post(`/admin/sessions/${id}/toggle-timer`);
+      if (res.data?.session) setSession(res.data.session);
+      else fetchSession();
+    } catch (err) {
+      console.error('Failed to toggle timer:', err);
+    }
+  };
+
   if (loading || !session) {
     return (
       <div className="p-8 text-center font-bold text-slate-500">
@@ -190,8 +201,8 @@ export default function LiveControlPanel() {
           </div>
         </div>
 
-        {/* Pace Mode Toggle Pill */}
-        <div className="flex items-center gap-2">
+        {/* Pace Mode & Timer Toggle Pills */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleToggleLobby}
             title={session.lobby_enabled ? 'Switch to Self-Paced (Fast Mode)' : 'Switch to Host-Controlled (Lobby)'}
@@ -206,6 +217,19 @@ export default function LiveControlPanel() {
             ) : (
               <><Zap className="w-3.5 h-3.5" /><span>Fast Mode: ON</span></>
             )}
+          </button>
+
+          <button
+            onClick={handleToggleTimer}
+            title={session.settings?.timer_enabled !== false ? 'Turn timer OFF for quiz (Untimed mode)' : 'Turn timer ON for quiz (Countdown mode)'}
+            className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer border-2 ${
+              session.settings?.timer_enabled !== false
+                ? 'border-[#0984E3] bg-[#EBF5FB] text-[#0984E3]'
+                : 'border-amber-500 bg-amber-50 text-amber-700'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>{session.settings?.timer_enabled !== false ? 'Timer: ON' : 'Timer: OFF (Untimed)'}</span>
           </button>
         </div>
 
@@ -354,6 +378,7 @@ export default function LiveControlPanel() {
                 <Timer
                   totalSeconds={currentQ.time_limit}
                   startedAt={session.current_question_started_at}
+                  enabled={session.settings?.timer_enabled !== false}
                 />
               )}
             </div>

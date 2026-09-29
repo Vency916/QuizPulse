@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/sessions/{id}/pause', [QuizSessionController::class, 'pause']);
     Route::post('/admin/sessions/{id}/resume', [QuizSessionController::class, 'resume']);
     Route::post('/admin/sessions/{id}/toggle-lobby', [QuizSessionController::class, 'toggleLobby']);
+    Route::post('/admin/sessions/{id}/toggle-timer', [QuizSessionController::class, 'toggleTimer']);
     Route::post('/admin/sessions/{id}/end', [QuizSessionController::class, 'endQuiz']);
 });
 

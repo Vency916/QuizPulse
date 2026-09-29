@@ -24,7 +24,13 @@ class ScoringService
         $totalAllowedMs = ($question->time_limit ?: 20) * 1000;
         $now = now();
 
-        if ($isSelfPaced) {
+        $timerEnabled = ($session->settings['timer_enabled'] ?? true) && (($question->time_limit ?? 20) > 0);
+
+        if (!$timerEnabled) {
+            // Untimed mode: Never time out
+            $responseTimeMs = $clientResponseTimeMs !== null ? max(0, $clientResponseTimeMs) : 0;
+            $isTimedOut = false;
+        } elseif ($isSelfPaced) {
             // Self-paced mode: Participant controls their own time per question
             $responseTimeMs = $clientResponseTimeMs !== null ? max(0, $clientResponseTimeMs) : 0;
             // Only timed out if client reported timeout or exceeded allowed time + grace period
@@ -107,7 +113,7 @@ class ScoringService
         if ($isCorrect) {
             $pointsEarned = $basePoints;
 
-            if ($speedBonusEnabled && $totalAllowedMs > 0) {
+            if ($speedBonusEnabled && $totalAllowedMs > 0 && $timerEnabled) {
                 $remainingMs = max(0, $totalAllowedMs - $responseTimeMs);
                 $speedRatio = $remainingMs / $totalAllowedMs;
                 $bonus = (int) round($maxSpeedBonus * $speedRatio);

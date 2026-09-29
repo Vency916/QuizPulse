@@ -622,6 +622,25 @@ export default function QuizEditor() {
               </select>
             </div>
 
+            {/* Question Timer Toggle */}
+            <div className="pt-3 border-t border-slate-100">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={quiz.settings?.timer_enabled ?? true}
+                  onChange={(e) => setQuiz({
+                    ...quiz,
+                    settings: { ...(quiz.settings || {}), timer_enabled: e.target.checked }
+                  })}
+                  className="rounded text-[#6C5CE7]"
+                />
+                <span>Enable Question Timer</span>
+              </label>
+              <p className="text-[11px] text-slate-400 mt-1 pl-5">
+                Turn off to run untimed quizzes where players answer without a countdown timer.
+              </p>
+            </div>
+
             {/* Speed Bonus Toggle */}
             <div className="pt-3 border-t border-slate-100">
               <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">

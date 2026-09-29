@@ -107,6 +107,7 @@ export default function ActiveQuestion({
   const totalQuestions = currentQ.total_questions || session?.quiz?.total_questions || 10;
   const currentOrder = currentQ.order || 1;
   const progressPercent = Math.min(100, Math.round((currentOrder / totalQuestions) * 100));
+  const timerEnabled = (session?.settings?.timer_enabled ?? true) && ((currentQ.time_limit || 20) > 0);
 
   return (
     <div className="max-w-2xl mx-auto w-full px-3 sm:px-6 py-4 animate-fade-in">
@@ -130,12 +131,14 @@ export default function ActiveQuestion({
 
         {/* Stopwatch Timer Pill (Matching Image 2 top-right pill) */}
         <div className="px-3.5 py-1.5 rounded-full bg-white border-2 border-[#E9E4F8] shadow-sm flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#FDCB6E] fill-[#FDCB6E]/30" />
+          <Clock className={`w-4 h-4 ${timerEnabled ? 'text-[#FDCB6E] fill-[#FDCB6E]/30' : 'text-[#6C5CE7]'}`} />
           <Timer
             key={currentQ.id}
             totalSeconds={currentQ.time_limit || 20}
             startedAt={timerStartedAt}
             onTimeUp={handleTimeUp}
+            enabled={timerEnabled}
+            compact={true}
           />
         </div>
       </div>

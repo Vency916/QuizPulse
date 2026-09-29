@@ -25,6 +25,7 @@ export default function AdminQuizzes() {
   const [groupsEnabled, setGroupsEnabled] = useState(false);
   const [groupNames, setGroupNames] = useState('Team Blue, Team Red, Team Green, Team Yellow');
   const [paceMode, setPaceMode] = useState('self_paced'); // 'self_paced' or 'host_controlled'
+  const [timerEnabled, setTimerEnabled] = useState(true);
 
   const navigate = useNavigate();
 
@@ -104,6 +105,7 @@ export default function AdminQuizzes() {
         group_names: parsedGroups,
         lobby_enabled: paceMode === 'host_controlled',
         pace_mode: paceMode,
+        timer_enabled: timerEnabled,
       });
 
       sounds.playFanfare();
@@ -252,6 +254,7 @@ export default function AdminQuizzes() {
                   onClick={() => {
                     sounds.playClick();
                     setSelectedQuizToLaunch(quiz);
+                    setTimerEnabled(quiz.settings?.timer_enabled ?? true);
                     setShowLaunchModal(true);
                   }}
                   className="btn-3d-secondary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -476,6 +479,26 @@ export default function AdminQuizzes() {
                     </div>
                   </label>
                 </div>
+              </div>
+
+              {/* Question Timer Toggle */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div className="pr-3">
+                    <div className="text-sm font-bold text-slate-800">Question Countdown Timer</div>
+                    <div className="text-xs text-slate-500">
+                      {timerEnabled
+                        ? 'Questions have countdown limits and speed-bonus scoring'
+                        : 'Questions are untimed (∞ Untimed mode for stress-free quizzing)'}
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={timerEnabled}
+                    onChange={(e) => setTimerEnabled(e.target.checked)}
+                    className="w-5 h-5 text-[#6C5CE7] rounded accent-[#6C5CE7] cursor-pointer"
+                  />
+                </label>
               </div>
 
               <div className="pt-4 flex items-center justify-end gap-2">

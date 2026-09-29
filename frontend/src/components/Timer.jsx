@@ -2,11 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { sounds } from '../services/soundEffects';
 
-export default function Timer({ totalSeconds = 20, startedAt, onTimeUp, paused = false }) {
+export default function Timer({
+  totalSeconds = 20,
+  startedAt,
+  onTimeUp,
+  paused = false,
+  enabled = true,
+  compact = false,
+}) {
   const [timeLeft, setTimeLeft] = useState(totalSeconds);
 
   useEffect(() => {
-    if (!startedAt || paused) return;
+    if (!enabled || !startedAt || paused || totalSeconds <= 0) return;
 
     const calculateRemaining = () => {
       const start = new Date(startedAt).getTime();
@@ -35,7 +42,27 @@ export default function Timer({ totalSeconds = 20, startedAt, onTimeUp, paused =
     }, 250);
 
     return () => clearInterval(interval);
-  }, [totalSeconds, startedAt, paused, onTimeUp]);
+  }, [totalSeconds, startedAt, paused, onTimeUp, enabled]);
+
+  // If timer is disabled for this quiz or session
+  if (!enabled || totalSeconds <= 0) {
+    if (compact) {
+      return (
+        <div className="flex items-center gap-1 font-display font-black text-xs text-[#6C5CE7]">
+          <span className="text-base leading-none">∞</span>
+          <span className="text-[10px] uppercase font-bold tracking-wider">Untimed</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col items-center">
+        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-[#6C5CE7] bg-[#ECE9FE] text-[#6C5CE7] flex flex-col items-center justify-center font-display font-bold shadow-md">
+          <span className="text-2xl leading-none">∞</span>
+          <span className="text-[9px] font-sans uppercase font-bold tracking-wider opacity-90">Untimed</span>
+        </div>
+      </div>
+    );
+  }
 
   const percentage = Math.max(0, Math.min(100, (timeLeft / totalSeconds) * 100));
 
@@ -48,6 +75,14 @@ export default function Timer({ totalSeconds = 20, startedAt, onTimeUp, paused =
   } else if (timeLeft <= 10) {
     colorClass = 'text-[#FDCB6E] border-[#FDCB6E] bg-[#FFF8E6]';
     barClass = 'bg-[#FDCB6E]';
+  }
+
+  if (compact) {
+    return (
+      <span className={`font-display font-black text-sm sm:text-base leading-none ${timeLeft <= 5 ? 'text-[#FF7675] animate-pulse' : 'text-slate-700'}`}>
+        {timeLeft}s
+      </span>
+    );
   }
 
   return (
