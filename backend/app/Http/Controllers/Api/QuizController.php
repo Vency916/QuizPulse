@@ -175,23 +175,38 @@ class QuizController extends Controller
     public function liveQuizzes()
     {
         // Active sessions that are in waiting or live_question state
-        $sessions = QuizSession::with(['quiz', 'participants', 'groups'])
+        $sessions = QuizSession::with(['quiz.questions', 'participants', 'groups'])
             ->whereIn('status', ['waiting', 'live_question', 'showing_answer', 'leaderboard'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($session) {
+                $quiz = $session->quiz;
+                $qCount = $quiz ? $quiz->questions->count() : 0;
+                $pCount = $session->participants->count();
+
                 return [
+                    'id' => $session->id,
                     'session_code' => $session->session_code,
                     'status' => $session->status,
-                    'title' => $session->quiz->title,
-                    'description' => $session->quiz->description,
-                    'category' => $session->quiz->category,
-                    'difficulty' => $session->quiz->difficulty,
-                    'cover_image' => $session->quiz->cover_image,
-                    'questions_count' => $session->quiz->questions()->count(),
-                    'participants_count' => $session->participants()->count(),
+                    'title' => $quiz ? $quiz->title : 'Live Quiz',
+                    'description' => $quiz ? $quiz->description : null,
+                    'category' => $quiz ? $quiz->category : 'General',
+                    'difficulty' => $quiz ? $quiz->difficulty : 'medium',
+                    'cover_image' => $quiz ? $quiz->cover_image : null,
+                    'questions_count' => $qCount,
+                    'participants_count' => $pCount,
                     'groups_enabled' => !empty($session->settings['groups_enabled']),
                     'started_at' => $session->started_at,
+                    'quiz' => $quiz ? [
+                        'id' => $quiz->id,
+                        'title' => $quiz->title,
+                        'description' => $quiz->description,
+                        'category' => $quiz->category,
+                        'difficulty' => $quiz->difficulty,
+                        'cover_image' => $quiz->cover_image,
+                        'total_questions' => $qCount,
+                        'questions_count' => $qCount,
+                    ] : null,
                 ];
             });
 

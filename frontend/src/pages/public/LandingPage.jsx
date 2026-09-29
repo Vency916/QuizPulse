@@ -308,7 +308,7 @@ export default function LandingPage() {
                   {/* Top Tags */}
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg bg-[#ECE9FE] text-[#6C5CE7]">
-                      {session.quiz?.category || 'Trivia'}
+                      {session.category || session.quiz?.category || 'General'}
                     </span>
                     <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg bg-[#E0F8F2] text-[#00B894] flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#00B894] animate-pulse" />
@@ -318,10 +318,10 @@ export default function LandingPage() {
 
                   {/* Title & Description */}
                   <h3 className="font-display text-xl font-bold text-slate-800 line-clamp-1 mb-2">
-                    {session.quiz?.title || 'Live Quiz'}
+                    {session.title || session.quiz?.title || 'Live Quiz'}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-2 font-medium mb-4">
-                    {session.quiz?.description || 'Fast-paced multiplayer trivia session.'}
+                    {session.description || session.quiz?.description || 'Interactive multiplayer quiz session.'}
                   </p>
 
                   {/* Meta Pills */}
@@ -332,7 +332,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <BookOpen className="w-3.5 h-3.5 text-[#00B894]" />
-                      <span>{session.quiz?.total_questions || 10} Questions</span>
+                      <span>{session.questions_count ?? session.quiz?.total_questions ?? session.quiz?.questions_count ?? 10} Questions</span>
                     </div>
                   </div>
                 </div>
