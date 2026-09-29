@@ -51,6 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Dashboard & Analytics
     Route::get('/admin/stats', [AnalyticsController::class, 'dashboardStats']);
     Route::get('/admin/sessions/{id}/analytics', [AnalyticsController::class, 'sessionAnalytics']);
+    Route::get('/admin/sessions/{id}/export-csv', [AnalyticsController::class, 'exportSessionCsv']);
+    Route::get('/admin/quizzes/{id}/export-csv', [AnalyticsController::class, 'exportQuizCsv']);
 
     // Quiz Management CRUD
     Route::get('/admin/quizzes', [QuizController::class, 'index']);

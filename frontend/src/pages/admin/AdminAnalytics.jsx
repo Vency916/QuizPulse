@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { BarChart3, Trophy, CheckCircle, XCircle, Clock, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { BarChart3, Trophy, CheckCircle, XCircle, Clock, AlertTriangle, ArrowLeft, Download } from 'lucide-react';
 import api from '../../services/api';
 import { sounds } from '../../services/soundEffects';
 
@@ -10,6 +10,7 @@ export default function AdminAnalytics() {
   const [selectedId, setSelectedId] = useState(paramId || null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   // Fetch list of sessions
   useEffect(() => {
@@ -48,6 +49,92 @@ export default function AdminAnalytics() {
     fetchDetails();
   }, [selectedId]);
 
+  const generateClientCsv = (data) => {
+    const rows = [];
+    rows.push(['QUIZ PULSE - SESSION ANALYTICS REPORT']);
+    rows.push(['Quiz Title', `"${(data.session?.title || '').replace(/"/g, '""')}"`]);
+    rows.push(['Session PIN', data.session?.session_code || '']);
+    rows.push(['Status', (data.session?.status || '').toUpperCase()]);
+    rows.push(['Total Players', data.summary?.total_participants || 0]);
+    rows.push(['Average Score', data.summary?.average_score || 0]);
+    rows.push(['Highest Score', data.summary?.max_score || 0]);
+    rows.push(['Lowest Score', data.summary?.min_score || 0]);
+    rows.push([]);
+
+    rows.push(['=== FINAL PLAYER RANKINGS ===']);
+    rows.push(['Rank', 'Player Name', 'Team / Group', 'Final Score', 'Correct Answers', 'Accuracy (%)']);
+    (data.results || []).forEach((r) => {
+      rows.push([
+        r.final_rank,
+        `"${(r.participant?.username || 'Player').replace(/"/g, '""')}"`,
+        `"${(r.group?.name || 'None').replace(/"/g, '""')}"`,
+        r.final_score,
+        r.correct_count,
+        `${r.accuracy_percent}%`,
+      ]);
+    });
+    rows.push([]);
+
+    rows.push(['=== QUESTION PERFORMANCE BREAKDOWN ===']);
+    rows.push(['#', 'Question Text', 'Type', 'Total Answers', 'Correct Answers', 'Accuracy (%)', 'Avg Response Time (s)']);
+    (data.questions || []).forEach((q, idx) => {
+      rows.push([
+        idx + 1,
+        `"${(q.question_text || '').replace(/"/g, '""')}"`,
+        q.type,
+        q.total_answers,
+        q.correct_answers,
+        `${q.accuracy_percent}%`,
+        (q.avg_time_ms / 1000).toFixed(1),
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + rows.map((e) => e.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const safeTitle = (data.session?.title || 'quiz').toLowerCase().replace(/[^a-z0-9]/g, '_');
+    link.setAttribute('download', `analytics_${safeTitle}_PIN_${data.session?.session_code || 'export'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadCsv = async () => {
+    if (!selectedId || !analytics) return;
+    sounds.playClick();
+    setDownloading(true);
+
+    try {
+      const response = await api.get(`/admin/sessions/${selectedId}/export-csv`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeTitle = (analytics.session?.title || 'quiz').toLowerCase().replace(/[^a-z0-9]/g, '_');
+      link.setAttribute('download', `analytics_${safeTitle}_${analytics.session?.session_code || selectedId}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      sounds.playCorrect();
+    } catch (err) {
+      console.warn('Backend download failed, falling back to client-side CSV:', err);
+      try {
+        generateClientCsv(analytics);
+        sounds.playCorrect();
+      } catch (fallbackErr) {
+        sounds.playIncorrect();
+        alert('Could not download analytics report.');
+      }
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -61,23 +148,36 @@ export default function AdminAnalytics() {
           </p>
         </div>
 
-        {/* Session Selector */}
-        {sessions.length > 0 && (
-          <select
-            value={selectedId || ''}
-            onChange={(e) => {
-              sounds.playClick();
-              setSelectedId(e.target.value);
-            }}
-            className="w-full sm:w-auto bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
-          >
-            {sessions.map((s) => (
-              <option key={s.id} value={s.id}>
-                PIN {s.session_code} — {s.title} ({s.status})
-              </option>
-            ))}
-          </select>
-        )}
+        {/* Controls: Session Selector & Download */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
+          {sessions.length > 0 && (
+            <select
+              value={selectedId || ''}
+              onChange={(e) => {
+                sounds.playClick();
+                setSelectedId(e.target.value);
+              }}
+              className="w-full sm:w-auto bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
+            >
+              {sessions.map((s) => (
+                <option key={s.id} value={s.id}>
+                  PIN {s.session_code} — {s.title} ({s.status})
+                </option>
+              ))}
+            </select>
+          )}
+
+          {analytics && (
+            <button
+              onClick={handleDownloadCsv}
+              disabled={downloading}
+              className="btn-3d-primary px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm whitespace-nowrap"
+            >
+              <Download className="w-4 h-4" />
+              <span>{downloading ? 'Downloading...' : 'Download CSV'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (

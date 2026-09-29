@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Play, Edit3, Copy, Trash2, HelpCircle, Layers, CheckCircle2, FileUp } from 'lucide-react';
+import { Plus, Search, Filter, Play, Edit3, Copy, Trash2, HelpCircle, Layers, CheckCircle2, FileUp, Download, BarChart2 } from 'lucide-react';
 import api from '../../services/api';
 import { sounds } from '../../services/soundEffects';
 import QuestionImportModal from '../../components/admin/QuestionImportModal';
@@ -87,6 +87,28 @@ export default function AdminQuizzes() {
       fetchQuizzes();
     } catch (err) {
       alert('Failed to delete quiz');
+    }
+  };
+
+  const handleDownloadQuizAnalytics = async (quiz) => {
+    sounds.playClick();
+    try {
+      const response = await api.get(`/admin/quizzes/${quiz.id}/export-csv`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeTitle = (quiz.title || 'quiz').toLowerCase().replace(/[^a-z0-9]/g, '_');
+      link.setAttribute('download', `analytics_${safeTitle}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      sounds.playCorrect();
+    } catch (err) {
+      sounds.playIncorrect();
+      alert('Failed to download quiz analytics report.');
     }
   };
 
@@ -264,6 +286,13 @@ export default function AdminQuizzes() {
                 </button>
 
                 <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleDownloadQuizAnalytics(quiz)}
+                    title="Download Analytics Report (CSV)"
+                    className="p-2 rounded-xl text-slate-500 hover:text-[#0984E3] hover:bg-[#EBF5FB] transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => {
                       sounds.playClick();

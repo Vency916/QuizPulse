@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Radio, Users, CheckSquare, Plus, ArrowRight, Play, BarChart2 } from 'lucide-react';
+import { BookOpen, Radio, Users, CheckSquare, Plus, ArrowRight, Play, BarChart2, Download } from 'lucide-react';
 import api from '../../services/api';
 import { sounds } from '../../services/soundEffects';
 
@@ -22,6 +22,28 @@ export default function AdminDashboard() {
     };
     fetchStats();
   }, []);
+
+  const handleDownloadSessionCsv = async (s) => {
+    sounds.playClick();
+    try {
+      const response = await api.get(`/admin/sessions/${s.id}/export-csv`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv;charset=utf-8;' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const safeTitle = (s.title || 'quiz').toLowerCase().replace(/[^a-z0-9]/g, '_');
+      link.setAttribute('download', `analytics_${safeTitle}_${s.session_code}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      sounds.playCorrect();
+    } catch (err) {
+      sounds.playIncorrect();
+      alert('Failed to download session analytics report.');
+    }
+  };
 
   const cards = [
     { label: 'Total Quizzes', value: stats?.total_quizzes ?? '--', icon: BookOpen, color: 'text-[#6C5CE7]', bg: 'bg-[#ECE9FE]' },
@@ -129,29 +151,38 @@ export default function AdminDashboard() {
                       {s.participants_count}
                     </td>
                     <td className="py-3 text-right">
-                      {s.status !== 'finished' ? (
+                      <div className="flex items-center justify-end gap-1.5">
+                        {s.status !== 'finished' ? (
+                          <button
+                            onClick={() => {
+                              sounds.playClick();
+                              navigate(`/admin/sessions/${s.id}`);
+                            }}
+                            className="btn-3d-secondary px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                          >
+                            <Play className="w-3.5 h-3.5 fill-white" />
+                            <span>Host Control</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              sounds.playClick();
+                              navigate(`/admin/analytics/${s.id}`);
+                            }}
+                            className="btn-3d-white px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                          >
+                            <BarChart2 className="w-3.5 h-3.5 text-[#6C5CE7]" />
+                            <span>Analytics</span>
+                          </button>
+                        )}
                         <button
-                          onClick={() => {
-                            sounds.playClick();
-                            navigate(`/admin/sessions/${s.id}`);
-                          }}
-                          className="btn-3d-secondary px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                          onClick={() => handleDownloadSessionCsv(s)}
+                          title="Download CSV Report"
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-[#0984E3] hover:bg-[#EBF5FB] transition-colors cursor-pointer"
                         >
-                          <Play className="w-3.5 h-3.5 fill-white" />
-                          <span>Host Control</span>
+                          <Download className="w-4 h-4" />
                         </button>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            sounds.playClick();
-                            navigate(`/admin/analytics/${s.id}`);
-                          }}
-                          className="btn-3d-white px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                        >
-                          <BarChart2 className="w-3.5 h-3.5 text-[#6C5CE7]" />
-                          <span>Analytics</span>
-                        </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}
