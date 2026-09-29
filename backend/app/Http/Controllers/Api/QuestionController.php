@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\AnswerOption;
+use App\Services\QuestionImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class QuestionController extends Controller
 {
@@ -204,5 +206,169 @@ class QuestionController extends Controller
             'message' => 'Question duplicated successfully',
             'question' => $newQuestion->load('options'),
         ]);
+    }
+
+    /**
+     * Admin: Parse uploaded document (PDF, DOCX, TXT) into questions.
+     */
+    public function parseDocument(Request $request, QuestionImportService $importService)
+    {
+        $request->validate([
+            'file' => 'required|file|max:15360', // max 15MB
+        ]);
+
+        $file = $request->file('file');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['pdf', 'docx', 'doc', 'txt', 'md', 'text'])) {
+            return response()->json([
+                'message' => "Unsupported file format (.{$ext}). Please upload a PDF, Word (.docx), or text document.",
+            ], 422);
+        }
+
+        try {
+            $parsed = $importService->parseFile($file);
+
+            if (empty($parsed['questions'])) {
+                return response()->json([
+                    'message' => 'No questions could be recognized in this file. Please make sure the questions and options follow a standard format (e.g. 1. Question text, A) Option 1, B) Option 2).',
+                    'raw_text_preview' => $parsed['raw_text_preview'] ?? '',
+                    'questions' => [],
+                    'total_parsed' => 0,
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => "Successfully parsed {$parsed['total_parsed']} questions.",
+                'total_parsed' => $parsed['total_parsed'],
+                'questions' => $parsed['questions'],
+                'raw_text_preview' => $parsed['raw_text_preview'],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Error parsing document: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Admin: Bulk import questions into an existing quiz.
+     */
+    public function importToQuiz(Request $request, $quizId)
+    {
+        $quiz = Quiz::findOrFail($quizId);
+
+        $validated = $request->validate([
+            'questions' => 'required|array|min:1',
+            'questions.*.question_text' => 'required|string',
+            'questions.*.type' => 'nullable|string',
+            'questions.*.time_limit' => 'nullable|integer',
+            'questions.*.points' => 'nullable|integer',
+            'questions.*.explanation' => 'nullable|string',
+            'questions.*.options' => 'required|array|min:1',
+            'questions.*.options.*.option_text' => 'required|string',
+            'questions.*.options.*.is_correct' => 'required|boolean',
+        ]);
+
+        $imported = DB::transaction(function () use ($quiz, $validated) {
+            $currentMaxOrder = Question::where('quiz_id', $quiz->id)->max('order') ?: 0;
+            $createdQuestions = [];
+
+            foreach ($validated['questions'] as $qData) {
+                $currentMaxOrder++;
+                $type = in_array($qData['type'] ?? '', ['multiple_choice', 'true_false', 'multiple_select', 'short_answer'])
+                    ? $qData['type']
+                    : 'multiple_choice';
+
+                $question = Question::create([
+                    'quiz_id' => $quiz->id,
+                    'type' => $type,
+                    'question_text' => $qData['question_text'],
+                    'time_limit' => $qData['time_limit'] ?? 20,
+                    'points' => $qData['points'] ?? 100,
+                    'explanation' => $qData['explanation'] ?? '',
+                    'order' => $currentMaxOrder,
+                ]);
+
+                foreach ($qData['options'] as $idx => $optData) {
+                    AnswerOption::create([
+                        'question_id' => $question->id,
+                        'option_text' => $optData['option_text'],
+                        'is_correct' => (bool) $optData['is_correct'],
+                        'order' => $idx + 1,
+                    ]);
+                }
+
+                $createdQuestions[] = $question->load('options');
+            }
+
+            return $createdQuestions;
+        });
+
+        return response()->json([
+            'message' => 'Successfully imported ' . count($imported) . ' questions into ' . $quiz->title,
+            'count' => count($imported),
+            'questions' => $imported,
+        ]);
+    }
+
+    /**
+     * Admin: Create a new quiz and populate it with imported questions.
+     */
+    public function createWithQuestions(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'nullable|string|max:100',
+            'difficulty' => 'nullable|in:easy,medium,hard',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:draft,published,archived',
+            'questions' => 'required|array|min:1',
+            'questions.*.question_text' => 'required|string',
+            'questions.*.options' => 'required|array|min:1',
+        ]);
+
+        $result = DB::transaction(function () use ($validated) {
+            $quiz = Quiz::create([
+                'title' => $validated['title'],
+                'slug' => Str::slug($validated['title']) . '-' . rand(1000, 9999),
+                'description' => $validated['description'] ?? '',
+                'category' => $validated['category'] ?? 'General',
+                'difficulty' => $validated['difficulty'] ?? 'medium',
+                'status' => $validated['status'] ?? 'draft',
+                'settings' => ['speed_bonus' => true, 'shuffle_questions' => false],
+            ]);
+
+            foreach ($validated['questions'] as $order => $qData) {
+                $type = in_array($qData['type'] ?? '', ['multiple_choice', 'true_false', 'multiple_select', 'short_answer'])
+                    ? $qData['type']
+                    : 'multiple_choice';
+
+                $question = Question::create([
+                    'quiz_id' => $quiz->id,
+                    'type' => $type,
+                    'question_text' => $qData['question_text'],
+                    'time_limit' => $qData['time_limit'] ?? 20,
+                    'points' => $qData['points'] ?? 100,
+                    'explanation' => $qData['explanation'] ?? '',
+                    'order' => $order + 1,
+                ]);
+
+                foreach ($qData['options'] as $idx => $optData) {
+                    AnswerOption::create([
+                        'question_id' => $question->id,
+                        'option_text' => $optData['option_text'],
+                        'is_correct' => (bool) ($optData['is_correct'] ?? false),
+                        'order' => $idx + 1,
+                    ]);
+                }
+            }
+
+            return $quiz->load('questions.options');
+        });
+
+        return response()->json([
+            'message' => 'Successfully created quiz with ' . count($result->questions) . ' questions.',
+            'quiz' => $result,
+        ], 201);
     }
 }

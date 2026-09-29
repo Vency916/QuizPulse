@@ -63,6 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Question Management CRUD & Reordering
     Route::get('/admin/questions', [QuestionController::class, 'index']);
     Route::post('/admin/quizzes/{quizId}/questions', [QuestionController::class, 'store']);
+    Route::post('/admin/questions/parse-document', [QuestionController::class, 'parseDocument']);
+    Route::post('/admin/quizzes/{quizId}/import-questions', [QuestionController::class, 'importToQuiz']);
+    Route::post('/admin/quizzes/create-with-questions', [QuestionController::class, 'createWithQuestions']);
 
     Route::put('/admin/questions/{id}', [QuestionController::class, 'update']);
     Route::delete('/admin/questions/{id}', [QuestionController::class, 'destroy']);

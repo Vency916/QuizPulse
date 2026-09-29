@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, Copy, MoveUp, MoveDown, Check, CheckSquare, Sparkles, HelpCircle, Eye, Play } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Copy, MoveUp, MoveDown, Check, CheckSquare, Sparkles, HelpCircle, Eye, Play, FileUp } from 'lucide-react';
 import api from '../../services/api';
 import { sounds } from '../../services/soundEffects';
+import QuestionImportModal from '../../components/admin/QuestionImportModal';
 
 export default function QuizEditor() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ export default function QuizEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Fetch Quiz and Questions
   useEffect(() => {
@@ -229,24 +231,24 @@ export default function QuizEditor() {
   return (
     <div className="space-y-6">
       {/* Top Header Bar */}
-      <div className="card-playful p-4 sm:p-5 bg-white border-2 border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="card-playful p-3.5 sm:p-5 bg-white border-2 border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
               sounds.playClick();
               navigate('/admin/quizzes');
             }}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="text"
                 value={quiz.title}
                 onChange={(e) => setQuiz({ ...quiz, title: e.target.value })}
-                className="font-display text-xl sm:text-2xl font-extrabold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#6C5CE7] focus:outline-none"
+                className="font-display text-lg sm:text-2xl font-extrabold text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-[#6C5CE7] focus:outline-none max-w-full"
               />
               <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
                 quiz.status === 'published' ? 'bg-[#E0F8F2] text-[#00B894]' : 'bg-slate-100 text-slate-500'
@@ -260,7 +262,7 @@ export default function QuizEditor() {
 
         <div className="flex items-center gap-2">
           {saveSuccess && (
-            <span className="text-xs font-bold text-[#00B894] flex items-center gap-1 animate-fade-in">
+            <span className="text-xs font-bold text-[#00B894] flex items-center gap-1 animate-fade-in whitespace-nowrap">
               <Check className="w-4 h-4" /> Saved!
             </span>
           )}
@@ -268,7 +270,7 @@ export default function QuizEditor() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="btn-3d-primary px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+            className="btn-3d-primary w-full sm:w-auto justify-center px-5 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving...' : 'Save Changes'}</span>
@@ -276,21 +278,81 @@ export default function QuizEditor() {
         </div>
       </div>
 
-      {/* 3-Column Layout: Questions List | Question Editor | Quiz Settings */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Questions List (3 cols) */}
-        <div className="lg:col-span-3 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Questions ({questions.length})
-            </span>
+      {/* Mobile Horizontal Question Selector (< lg screens) */}
+      <div className="lg:hidden card-playful p-3.5 bg-white border-2 border-slate-100 shadow-sm space-y-2">
+        <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <span>Questions ({questions.length})</span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => {
+                sounds.playClick();
+                setShowImportModal(true);
+              }}
+              className="text-slate-600 hover:text-[#6C5CE7] hover:bg-[#ECE9FE] px-2 py-1 rounded-lg flex items-center gap-1 transition-colors text-xs font-bold cursor-pointer"
+            >
+              <FileUp className="w-3.5 h-3.5" />
+              <span>Import</span>
+            </button>
             <button
               onClick={handleAddQuestion}
-              className="text-xs font-bold text-[#6C5CE7] hover:bg-[#ECE9FE] px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+              className="text-[#6C5CE7] hover:bg-[#ECE9FE] px-2 py-1 rounded-lg flex items-center gap-1 transition-colors text-xs font-bold cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add</span>
             </button>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
+          {questions.map((q, idx) => {
+            const isSelected = selectedQuestionIndex === idx;
+            return (
+              <button
+                key={q.id || idx}
+                onClick={() => {
+                  sounds.playClick();
+                  setSelectedQuestionIndex(idx);
+                }}
+                className={`shrink-0 px-3.5 py-2 rounded-xl font-display font-bold text-xs flex items-center gap-1.5 transition-all ${
+                  isSelected
+                    ? 'bg-[#6C5CE7] text-white shadow-sm scale-105'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <span>Q{idx + 1}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3-Column Layout: Questions List | Question Editor | Quiz Settings */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: Questions List (Visible only on desktop lg screens) */}
+        <div className="hidden lg:block lg:col-span-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Questions ({questions.length})
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => {
+                  sounds.playClick();
+                  setShowImportModal(true);
+                }}
+                className="text-xs font-bold text-slate-600 hover:text-[#6C5CE7] hover:bg-[#ECE9FE] px-2 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                title="Import questions from PDF or DOCX"
+              >
+                <FileUp className="w-3.5 h-3.5" />
+                <span>Import</span>
+              </button>
+              <button
+                onClick={handleAddQuestion}
+                className="text-xs font-bold text-[#6C5CE7] hover:bg-[#ECE9FE] px-2 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add</span>
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
@@ -581,6 +643,19 @@ export default function QuizEditor() {
           </div>
         </div>
       </div>
+
+      {/* Document Import Modal */}
+      <QuestionImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        targetQuizId={quiz.id}
+        targetQuizTitle={quiz.title}
+        onSuccess={async () => {
+          const refreshed = await api.get(`/admin/quizzes/${id}`);
+          setQuiz(refreshed.data.quiz);
+          setQuestions(refreshed.data.quiz.questions || []);
+        }}
+      />
     </div>
   );
 }

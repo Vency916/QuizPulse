@@ -35,10 +35,10 @@ export default function AdminDashboard() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-extrabold text-slate-800">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-800">
             Control Dashboard
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
             Welcome back! Here's an overview of your quiz platform activity.
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
           <Link
             to="/admin/quizzes"
             onClick={() => sounds.playClick()}
-            className="btn-3d-primary px-4 py-2.5 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-sm"
+            className="btn-3d-primary w-full sm:w-auto justify-center px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-sm"
           >
             <Plus className="w-4 h-4" />
             <span>Create Quiz</span>
@@ -56,19 +56,19 @@ export default function AdminDashboard() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {cards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={i} className="card-playful p-5 bg-white border border-slate-100 flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-2xl ${card.bg} ${card.color} flex items-center justify-center shrink-0`}>
-                <Icon className="w-6 h-6" />
+            <div key={i} className="card-playful p-3.5 sm:p-5 bg-white border border-slate-100 flex items-center gap-3 sm:gap-4">
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${card.bg} ${card.color} flex items-center justify-center shrink-0`}>
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <div className="font-display text-2xl font-extrabold text-slate-800 leading-none">
+              <div className="min-w-0">
+                <div className="font-display text-xl sm:text-2xl font-extrabold text-slate-800 leading-none truncate">
                   {card.value}
                 </div>
-                <div className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                <div className="text-[10px] sm:text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider truncate">
                   {card.label}
                 </div>
               </div>
@@ -78,10 +78,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Live Sessions Table */}
-      <div className="card-playful p-6 bg-white border-2 border-slate-100 shadow-md">
-        <div className="flex items-center justify-between mb-6">
+      <div className="card-playful p-4 sm:p-6 bg-white border-2 border-slate-100 shadow-md">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div>
-            <h2 className="font-display text-xl font-bold text-slate-800">Recent Sessions</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-800">Recent Sessions</h2>
             <p className="text-xs text-slate-500">Live games and past quiz sessions</p>
           </div>
           <Link
@@ -94,10 +94,10 @@ export default function AdminDashboard() {
         </div>
 
         {stats?.recent_sessions?.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <table className="w-full text-left text-sm min-w-[520px]">
               <thead>
-                <tr className="border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-400">
+                <tr className="border-b border-slate-100 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
                   <th className="pb-3">PIN Code</th>
                   <th className="pb-3">Quiz Title</th>
                   <th className="pb-3">Status</th>
@@ -111,11 +111,11 @@ export default function AdminDashboard() {
                     <td className="py-3 font-display font-bold text-[#6C5CE7]">
                       {s.session_code}
                     </td>
-                    <td className="py-3 font-bold text-slate-800 truncate max-w-xs">
+                    <td className="py-3 font-bold text-slate-800 truncate max-w-[180px] sm:max-w-xs">
                       {s.title}
                     </td>
                     <td className="py-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
+                      <span className={`px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase ${
                         s.status === 'live_question'
                           ? 'bg-[#E0F8F2] text-[#00B894] animate-pulse'
                           : s.status === 'waiting'
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
                         {s.status}
                       </span>
                     </td>
-                    <td className="py-3 font-semibold text-slate-600">
+                    <td className="py-3 font-semibold text-slate-600 text-xs sm:text-sm">
                       {s.participants_count}
                     </td>
                     <td className="py-3 text-right">
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
                             sounds.playClick();
                             navigate(`/admin/sessions/${s.id}`);
                           }}
-                          className="btn-3d-secondary px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                          className="btn-3d-secondary px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           <span>Host Control</span>
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
                             sounds.playClick();
                             navigate(`/admin/analytics/${s.id}`);
                           }}
-                          className="btn-3d-white px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                          className="btn-3d-white px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
                         >
                           <BarChart2 className="w-3.5 h-3.5 text-[#6C5CE7]" />
                           <span>Analytics</span>

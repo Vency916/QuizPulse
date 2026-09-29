@@ -17,8 +17,6 @@ export default function Footer() {
 
         <div className="flex items-center gap-4 text-xs text-slate-400">
           <span>Fast, friendly & mobile-first</span>
-          <span>•</span>
-          <Link to="/admin/login" className="hover:text-[#6C5CE7] transition-colors">Admin Login</Link>
         </div>
       </div>
     </footer>

@@ -5,6 +5,7 @@ import { SessionProvider } from './context/SessionContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
@@ -26,11 +27,12 @@ import AdminAnalytics from './pages/admin/AdminAnalytics';
 
 function App() {
   return (
-    <AuthProvider>
-      <SessionProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SessionProvider>
         <BrowserRouter>
           <Routes>
-            {/* Participant & Public Flow (With Navbar & Footer) */}
+            {/* Participant & Public Flow */}
             <Route
               path="/"
               element={
@@ -39,7 +41,6 @@ function App() {
                   <main className="flex-1">
                     <LandingPage />
                   </main>
-                  <Footer />
                 </div>
               }
             />
@@ -113,6 +114,7 @@ function App() {
         </BrowserRouter>
       </SessionProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

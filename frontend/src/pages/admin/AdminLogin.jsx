@@ -31,7 +31,7 @@ export default function AdminLogin() {
       navigate('/admin');
     } catch (err) {
       sounds.playIncorrect();
-      setError(err.response?.data?.message || err.response?.data?.errors?.email?.[0] || 'Invalid credentials.');
+      setError(err.friendlyMessage || err.response?.data?.message || err.response?.data?.errors?.email?.[0] || 'Invalid credentials.');
     } finally {
       setLoading(false);
     }

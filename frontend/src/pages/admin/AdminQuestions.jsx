@@ -50,10 +50,10 @@ export default function AdminQuestions() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-extrabold text-slate-800">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-800">
             Questions Explorer
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
             Browse, inspect answer keys, and preview all quiz questions
           </p>
         </div>
@@ -63,7 +63,7 @@ export default function AdminQuestions() {
             sounds.playClick();
             navigate('/admin/quizzes');
           }}
-          className="btn-3d-primary px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2"
+          className="btn-3d-primary w-full sm:w-auto justify-center px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2"
         >
           <span>Open Quiz Builder</span>
           <ArrowRight className="w-4 h-4" />
@@ -80,7 +80,7 @@ export default function AdminQuestions() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search questions or answers..."
-            className="w-full bg-white border-2 border-slate-200 focus:border-[#6C5CE7] rounded-2xl pl-11 pr-4 py-2.5 text-sm font-semibold focus:outline-none transition-all shadow-sm"
+            className="w-full bg-white border-2 border-slate-200 focus:border-[#6C5CE7] rounded-2xl pl-11 pr-4 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none transition-all shadow-sm"
           />
         </div>
 
@@ -91,7 +91,7 @@ export default function AdminQuestions() {
             sounds.playClick();
             setSelectedQuizId(e.target.value);
           }}
-          className="bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
+          className="w-full sm:w-auto bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
         >
           <option value="all">All Quizzes ({quizzes.length})</option>
           {quizzes.map((qz) => (
@@ -119,7 +119,7 @@ export default function AdminQuestions() {
           {questions.map((q, idx) => (
             <div
               key={q.id}
-              className="card-playful p-6 bg-white border-2 border-slate-100 shadow-sm hover:border-[#DCD6FA] transition-all"
+              className="card-playful p-4 sm:p-6 bg-white border-2 border-slate-100 shadow-sm hover:border-[#DCD6FA] transition-all"
             >
               {/* Top Row: Quiz Category, Type, Order, Time, Points */}
               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -222,13 +222,13 @@ export default function AdminQuestions() {
 
       {/* Question Simulation / Preview Modal */}
       {previewQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border-2 border-slate-100 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl p-5 sm:p-8 max-w-lg w-full border-2 border-slate-100 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
             <div className="text-center mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6C5CE7] bg-[#ECE9FE] px-3 py-1 rounded-full">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#6C5CE7] bg-[#ECE9FE] px-3 py-1 rounded-full">
                 Player View Simulation
               </span>
-              <h3 className="font-display text-2xl font-bold text-slate-800 mt-3">
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-slate-800 mt-3">
                 {previewQuestion.question_text}
               </h3>
             </div>

@@ -53,10 +53,10 @@ export default function AdminAnalytics() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-extrabold text-slate-800">
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-slate-800">
             Session Analytics
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
             Question difficulty breakdown, response times, and final player results
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function AdminAnalytics() {
               sounds.playClick();
               setSelectedId(e.target.value);
             }}
-            className="bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
+            className="w-full sm:w-auto bg-white border-2 border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:border-[#6C5CE7]"
           >
             {sessions.map((s) => (
               <option key={s.id} value={s.id}>
@@ -85,39 +85,39 @@ export default function AdminAnalytics() {
       ) : analytics ? (
         <div className="space-y-6">
           {/* Summary Row */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="card-playful p-5 bg-white border border-slate-100">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="card-playful p-3.5 sm:p-5 bg-white border border-slate-100">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                 Total Players
               </div>
-              <div className="font-display text-3xl font-extrabold text-[#0984E3]">
+              <div className="font-display text-2xl sm:text-3xl font-extrabold text-[#0984E3]">
                 {analytics.summary.total_participants}
               </div>
             </div>
 
-            <div className="card-playful p-5 bg-white border border-slate-100">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <div className="card-playful p-3.5 sm:p-5 bg-white border border-slate-100">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                 Average Score
               </div>
-              <div className="font-display text-3xl font-extrabold text-[#6C5CE7]">
+              <div className="font-display text-2xl sm:text-3xl font-extrabold text-[#6C5CE7]">
                 {analytics.summary.average_score} <span className="text-xs font-sans font-bold text-slate-400">pts</span>
               </div>
             </div>
 
-            <div className="card-playful p-5 bg-white border border-slate-100">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <div className="card-playful p-3.5 sm:p-5 bg-white border border-slate-100">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                 Highest Score
               </div>
-              <div className="font-display text-3xl font-extrabold text-[#00B894]">
+              <div className="font-display text-2xl sm:text-3xl font-extrabold text-[#00B894]">
                 {analytics.summary.max_score} <span className="text-xs font-sans font-bold text-slate-400">pts</span>
               </div>
             </div>
 
-            <div className="card-playful p-5 bg-white border border-slate-100">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+            <div className="card-playful p-3.5 sm:p-5 bg-white border border-slate-100">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                 Lowest Score
               </div>
-              <div className="font-display text-3xl font-extrabold text-[#FF7675]">
+              <div className="font-display text-2xl sm:text-3xl font-extrabold text-[#FF7675]">
                 {analytics.summary.min_score} <span className="text-xs font-sans font-bold text-slate-400">pts</span>
               </div>
             </div>
@@ -157,14 +157,14 @@ export default function AdminAnalytics() {
           </div>
 
           {/* Question Breakdown Table */}
-          <div className="card-playful p-6 bg-white border-2 border-slate-100 shadow-sm">
-            <h2 className="font-display text-xl font-bold text-slate-800 mb-4">
+          <div className="card-playful p-4 sm:p-6 bg-white border-2 border-slate-100 shadow-sm">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-800 mb-4">
               Question-by-Question Performance
             </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full text-left text-sm min-w-[540px]">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-100 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
                     <th className="pb-3">Question</th>
                     <th className="pb-3">Type</th>
                     <th className="pb-3">Answers</th>
@@ -175,7 +175,7 @@ export default function AdminAnalytics() {
                 <tbody className="divide-y divide-slate-100 font-semibold text-slate-700">
                   {analytics.questions?.map((q, idx) => (
                     <tr key={idx} className="hover:bg-slate-50/50">
-                      <td className="py-3 font-bold text-slate-800 max-w-sm">
+                      <td className="py-3 font-bold text-slate-800 max-w-sm truncate">
                         {q.question_text}
                       </td>
                       <td className="py-3 text-xs uppercase text-slate-400">
@@ -202,14 +202,14 @@ export default function AdminAnalytics() {
           </div>
 
           {/* Final Results Table */}
-          <div className="card-playful p-6 bg-white border-2 border-slate-100 shadow-sm">
-            <h2 className="font-display text-xl font-bold text-slate-800 mb-4">
+          <div className="card-playful p-4 sm:p-6 bg-white border-2 border-slate-100 shadow-sm">
+            <h2 className="font-display text-lg sm:text-xl font-bold text-slate-800 mb-4">
               Final Player Results
             </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full text-left text-sm min-w-[540px]">
                 <thead>
-                  <tr className="border-b border-slate-100 text-xs font-bold uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-100 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">
                     <th className="pb-3">Rank</th>
                     <th className="pb-3">Username</th>
                     <th className="pb-3">Team</th>

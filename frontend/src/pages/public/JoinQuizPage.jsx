@@ -39,7 +39,7 @@ export default function JoinQuizPage() {
         }
       } catch (err) {
         setSessionDetails(null);
-        setError(err.response?.data?.message || 'Quiz session not found. Please check code.');
+        setError(err.friendlyMessage || err.response?.data?.message || 'Quiz session not found. Please check code.');
       } finally {
         setLoadingQuiz(false);
       }
@@ -70,7 +70,7 @@ export default function JoinQuizPage() {
       navigate(`/play/${code.trim().toUpperCase()}`);
     } catch (err) {
       sounds.playIncorrect();
-      setError(err.response?.data?.message || 'Could not join quiz.');
+      setError(err.friendlyMessage || err.response?.data?.message || 'Could not join quiz.');
     } finally {
       setSubmitting(false);
     }

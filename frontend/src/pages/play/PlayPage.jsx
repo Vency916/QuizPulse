@@ -223,14 +223,25 @@ export default function PlayPage() {
           <div className="w-14 h-14 rounded-2xl bg-[#FFEBEB] text-[#FF7675] flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-7 h-7" />
           </div>
-          <h2 className="font-display text-2xl font-bold text-slate-800 mb-2">Quiz Not Found</h2>
+          <h2 className="font-display text-2xl font-bold text-slate-800 mb-2">Connection Issue</h2>
           <p className="text-slate-500 text-sm mb-6">{error}</p>
-          <button
-            onClick={() => navigate('/')}
-            className="btn-3d-secondary w-full py-3.5 rounded-2xl font-display text-lg font-bold"
-          >
-            Back to Home
-          </button>
+          <div className="flex flex-col gap-2.5">
+            <button
+              onClick={() => {
+                if (sessionCode) fetchSession(sessionCode).catch(() => {});
+              }}
+              className="btn-3d-primary w-full py-3 rounded-2xl font-display text-base font-bold flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry Connection
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="btn-3d-secondary w-full py-3 rounded-2xl font-display text-base font-bold"
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );

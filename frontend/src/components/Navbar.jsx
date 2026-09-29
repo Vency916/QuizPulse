@@ -79,16 +79,18 @@ export default function Navbar() {
             <span className="hidden xs:inline">Join</span> Quiz
           </Link>
 
-          {/* Super Admin Access */}
-          <Link
-            to={isAuthenticated ? '/admin' : '/admin/login'}
-            onClick={() => sounds.playClick()}
-            aria-label="Admin Portal"
-            className="p-2 rounded-xl text-slate-400 hover:text-[#6C5CE7] hover:bg-[#ECE9FE]/40 transition-colors"
-            title="Super Admin Portal"
-          >
-            <Shield className="w-5 h-5" />
-          </Link>
+          {/* Super Admin Access (Only visible when already authenticated) */}
+          {isAuthenticated && (
+            <Link
+              to="/admin"
+              onClick={() => sounds.playClick()}
+              aria-label="Admin Portal"
+              className="p-2 rounded-xl text-[#6C5CE7] bg-[#ECE9FE]/40 hover:bg-[#ECE9FE] transition-colors"
+              title="Super Admin Portal"
+            >
+              <Shield className="w-5 h-5" />
+            </Link>
+          )}
         </div>
       </div>
     </header>
